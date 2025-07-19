@@ -1,6 +1,6 @@
 # Welcome to Reforger-Enhanced-Effects (LVS)
 
-Reforger-Enhanced-Effects is an extension for LVS (Lua Vehicle System) that brings your battlefield to life with:
+Reforger-Enhanced-Effects is an extension for LVS (Lua Vehicle System) based on [Reforger-Base](https://github.com/RareIridium77/Reforger-Base) that brings your battlefield to life with:
 - Improved visual effects (VFX)
 - Realistic distant sound effects (SFX)
 
