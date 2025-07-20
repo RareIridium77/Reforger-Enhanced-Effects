@@ -8,7 +8,7 @@ hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
     
     local veh = bullet.Entity
 
-    if not IsValid(veh) or not veh:IsVehicle() then
+    if not IsValid(veh) then
         Reforger.DevLog("LVS Bullet Fired: Invalid vehicle")
         return
     end
