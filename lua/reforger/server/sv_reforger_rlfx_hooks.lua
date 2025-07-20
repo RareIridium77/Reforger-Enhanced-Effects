@@ -4,27 +4,28 @@ local rfxutil = RLFX.Util
 
 -- LVS bullet fired (initial event)
 hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
-    local ammo = "other"
+    if not istable(bullet) then return end
+    
     local veh = bullet.Entity
-
-    if IsValid(veh) then
-        if veh.reforgerType == "plane" or veh.reforgerType == "helicopter" then
-            RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.012, bullet.Entity, false) 
-        elseif veh.reforgerType == "armored" then
-            RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.04, bullet.Entity, bullet.Force >= 500)
-        end
-    end
-
-    if bullet.TracerName == "lvs_tracer_missile" then
-        ammo = "start_missile"
-    end
-
-    if ammo == "other" then
-        ammo = rfxdata.TracerAmmoType[bullet.TracerName]
-        if not ammo then ammo = "other" end
-    end
-
+    local bsdt = bullet.SplashDamageType
+    local btat = bullet.TracerName
+    local ammo = rfxdata.TracerAmmoType[btat] or "other"
     RLFX:EmitSound(bullet.Src, ammo)
+
+    if bsdt == DMG_SONIC and not rfxdata.TracerImpactType[btat] then
+        if veh.reforgerType == "light" then
+            RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.3, veh, false)
+        else
+            RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.05, veh, false)
+        end
+        return 
+    end
+
+    if bullet.SplashDamageType == DMG_BLAST then
+        RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.8, veh, true)
+    else
+        RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * 0.4, veh, true)
+    end
 end)
 
 -- LVS bullet hit impact (only for valid splash types)
@@ -35,16 +36,19 @@ hook.Add("Reforger.LVS_BulletCallback", "RLFX.LVS_BulletCallback", function(bull
     local bsdt = bullet.SplashDamageType
     local btat = bullet.TracerName
 
-    if bsdt == DMG_SONIC and not rfxdata.TracerImpactType[btat] then return end
+    if bsdt == DMG_SONIC and not rfxdata.TracerImpactType[btat] then
+        RLFX:EmitBulletHit(trace.HitPos, trace.HitNormal, trace.Entity)
+        return 
+    end
 
     local impact = rfxutil:GetImpactType(bullet, rfxdata.TracerImpactType)
     if not impact then return end
 
     if bullet.SplashDamageType == DMG_BLAST then
         RLFX:EmitHERound(trace.HitPos, trace.HitNormal)
+    else
+        RLFX:EmitHEATRound(trace.HitPos, trace.HitNormal, trace.Entity)
     end
-
-    Reforger.DevLog("Bullet Callback")
 
     RLFX:EmitSound(trace.HitPos, impact)
 end)

@@ -34,7 +34,7 @@ function RLFX:EmitSound(pos, ammotype)
             delay = rfxutil:GetSoundDelay(dist, soundSpeed, pos.z)
             zone = RLFX:GetZone(dist)
             obstructed = rfxutil:IsObstructed(pos, earPos)
-            dsp = 0
+            dsp = RLFX:GetDSPForZone(zone, obstructed)
             cached[key] = {delay, zone, obstructed, dsp}
         end
 

@@ -73,7 +73,24 @@ function RLFX:EmitHERound(pos, normal)
         lifetime = 0.15,
         startAlpha = 225,
         endAlpha = 0,
-        startSize = 24,
+        startSize = 340,
+        endSize = 8,
+        gravity = Vector(0, 0, 0),
+        airResistance = 5,
+        effectName = "particle/fire",
+        particleID = "rlfx.heround.flash"
+    })
+end
+
+function RLFX:EmitHEATRound(pos, normal, ent)
+    emitParticle({
+        pos = pos + normal * 2,
+        velocity = Vector(0, 0, 0),
+        color = {255, 160, 80},
+        lifetime = 0.35,
+        startAlpha = 225,
+        endAlpha = 0,
+        startSize = 120,
         endSize = 8,
         gravity = Vector(0, 0, 0),
         airResistance = 5,
@@ -81,44 +98,45 @@ function RLFX:EmitHERound(pos, normal)
         particleID = "rlfx.heround.flash"
     })
 
-    for i = 0, 11 do
-        local angle = (i / 12) * math.pi * 2
-        local dir = Vector(math.cos(angle), math.sin(angle), 0):GetNormalized()
-        emitParticle({
-            pos = pos + dir * 6 + normal * 4,
-            velocity = dir * 200 + normal * 150,
-            color = {255, 180, 80},
-            lifetime = 1.0,
-            startAlpha = 255,
-            endAlpha = 20,
-            startSize = 8,
-            endSize = 2,
-            gravity = Vector(0, 0, -400),
-            airResistance = 30,
-            effectName = "particles/dust",
-            particleID = "rlfx.heround"
-        })
-    end
-end
+    emitParticle({
+        pos = pos + normal * 2,
+        velocity = normal * 50,
+        color = {255, 160, 80},
+        lifetime = 0.15,
+        startAlpha = 225,
+        endAlpha = 0,
+        startSize = 750,
+        endSize = 8,
+        gravity = Vector(0, 0, 0),
+        airResistance = 5,
+        effectName = "particle/fire",
+        particleID = "rlfx.heround.flash"
+    })
 
-function RLFX:EmitHEATRound(pos, normal)
-    for i = 0, 7 do
-        local angle = (i / 8) * math.pi * 2
-        local dir = Vector(math.cos(angle), math.sin(angle), 0):GetNormalized()
-        emitParticle({
-            pos = pos + dir * 4 + normal * 2,
-            velocity = dir * 300 + normal * 250,
-            color = {255, 100, 30},
-            lifetime = 0.85,
-            startAlpha = 230,
-            endAlpha = 10,
-            startSize = 7,
-            endSize = 1,
-            gravity = Vector(0, 0, -300),
-            airResistance = 20,
-            effectName = "particles/flamelet",
-            particleID = "rlfx.heatrnd"
-        })
+    if IsValid(ent) then
+        local sparkCount = 24
+        for i = 1, sparkCount do
+            local angle = (i / sparkCount) * math.pi * 2
+            local dir = (normal * 0.7 + Vector(math.cos(angle), math.sin(angle), math.Rand(-0.2,0.2)) * 0.7):GetNormalized()
+            emitParticle({
+                pos = pos + dir * math.Rand(4, 10),
+                velocity = dir * math.Rand(250, 350) + VectorRand() * 40,
+                color = {255, 220, 100},
+                lifetime = math.Rand(0.4, 1),
+                startAlpha = 220,
+                endAlpha = 0,
+                startSize = math.Rand(2.5, 4.5),
+                endSize = 0,
+                gravity = Vector(0, 0, -700),
+                airResistance = 18,
+                effectName = "particle/fire",
+                particleID = "rlfx.heat.spark",
+                collide = true,
+                lighting = false,
+                count = 3,
+                emitRate = 0.01,
+            })
+        end
     end
 end
 
@@ -129,13 +147,13 @@ function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
 
     emitParticle({
         pos = pos + normal * 2,
-        velocity = VectorRand() * 10,
+        velocity = normal * 50 + VectorRand() * 10,
         color = {255, 160, 80},
         lifetime = 0.15,
-        startAlpha = 170,
+        startAlpha = 50,
         endAlpha = 0,
-        startSize = sSize * 1.9,
-        endSize = sSize * 1.2,
+        startSize = 2,
+        endSize = sSize * 1.4,
         gravity = Vector(0, 0, 0),
         airResistance = 5,
         collide = false,
@@ -145,42 +163,40 @@ function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
 
     emitParticle({
         pos = pos + normal * 10,
-        velocity = normal * startSize * 1.5,
+        velocity = normal * 150,
         color = {255, 160, 80},
-        lifetime = 0.075,
-        startAlpha = 255,
+        lifetime = 0.05,
+        startAlpha = 50,
         endAlpha = 0,
-        startSize = sSize * 1.5,
-        endSize = 1,
+        startSize = sSize,
+        endSize = 15,
         gravity = Vector(0, 0, 0),
         airResistance = 15,
         effectName = "particle/fire",
         particleID = "rlfx.muzzleflash",
         collide = false,
-        count = 4,
+        count = 7,
         emitRate = 0.0045,
     })
 
-    for i = 1, 2 do
-        emitParticle({
-            pos = pos + normal * 7.5 + VectorRand() * 1.5,
-            velocity = normal * math.Rand(80, 120) + VectorRand() * 40,
-            color = {200, 200, 200, 5},
-            lifetime = math.Rand(5, 7),
-            startAlpha = 30,
-            endAlpha = 0,
-            startSize = 1,
-            endSize = sSize,
-            gravity = Vector(0, 0, 0),
-            airResistance = 15,
-            effectName = "particles/dust",
-            particleID = "rlfx.gunshot",
-            lighting = true,
-            collide = false,
-            count = 7,
-            emitRate = 0.02
-        })
-    end
+    emitParticle({
+        pos = pos + normal * 7.5 + VectorRand() * 1.5,
+        velocity = normal * math.Rand(80, 120) + VectorRand() * 150,
+        color = {255, 255, 255},
+        lifetime = math.Rand(5, 7),
+        startAlpha = 20,
+        endAlpha = 0,
+        startSize = 1,
+        endSize = sSize,
+        gravity = Vector(0, 0, 0),
+        airResistance = 15,
+        effectName = "particles/dust",
+        particleID = "rlfx.gunshot",
+        lighting = true,
+        collide = false,
+        count = 3,
+        emitRate = 0.02
+    })
 
     emitParticle({
         pos = pos + normal * 10,
@@ -205,7 +221,7 @@ function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
         local up = ent:GetUp()
         local center = ent:GetPos() + up * 10
         local radius = ent:BoundingRadius()
-        local count = 5
+        local count = 3
 
         for i = 1, count do
             local angle = (i / count) * math.pi * 2
@@ -216,18 +232,71 @@ function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
                 velocity = (dir * radius * 1.15) + normal * radius * math.Rand(1.75, 2.5),
                 airResistance = 10,
                 lifetime = 10,
-                startAlpha = 12.5,
+                startAlpha = 25,
+                gravity = Vector(0, 0, 25),
                 endAlpha = 0,
-                startSize = 50,
+                startSize = radius * 0.25,
                 endSize = radius,
                 color = {180, 180, 180},
                 collide = false,
                 lighting = true,
                 effectName = "particle/smokestack_nofog",
                 particleID = "rlfx.shockwave",
-                count = 8,
+                count = 2,
                 emitRate = 0.0075
             })
         end
+    end
+end
+
+function RLFX:EmitBulletHit(pos, normal, ent)
+    if IsValid(ent) then
+        emitParticle({
+            pos = pos + normal * 2,
+            velocity = Vector(0, 0, 0),
+            color = {255, 160, 80},
+            lifetime = 0.1,
+            startAlpha = 225,
+            endAlpha = 0,
+            startSize = 50,
+            endSize = 8,
+            gravity = Vector(0, 0, 0),
+            airResistance = 5,
+            effectName = "particle/fire",
+            particleID = "rlfx.heround.flash",
+        })
+
+        emitParticle({
+            pos = pos + normal * 2,
+            velocity = normal * 800,
+            color = {255, 80, 25},
+            lifetime = 0.1,
+            startAlpha = 225,
+            endAlpha = 0,
+            startSize = 10,
+            endSize = 2,
+            gravity = Vector(0, 0, 0),
+            airResistance = 5,
+            effectName = "particle/fire",
+            particleID = "rlfx.heround.flash",
+            count = 3,
+            emitRate = 0.01,
+        })
+    else
+        emitParticle({
+            pos = pos + normal * 2,
+            velocity = normal * 50,
+            color = {255, 255, 255},
+            lifetime = 5,
+            startAlpha = 255,
+            endAlpha = 0,
+            startSize = 5,
+            endSize = 50,
+            gravity = Vector(0, 0, -25),
+            lighting = true,
+            airResistance = 5,
+            effectName = "particles/dust",
+            particleID = "rlfx.bullet.hit",
+        })
     end
 end

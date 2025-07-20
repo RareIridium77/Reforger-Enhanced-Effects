@@ -24,6 +24,7 @@ RLFX.Data.TracerAmmoType = {
 }
 
 RLFX.Data.TracerImpactType = {
+    ["lvs_tracer_autocannon"]     = "exp_mid",
     -- mid
     ["lvs_haubitze_trail"] = "exp_mid",
     ["lvs_haubitze_trail_improved"] = "exp_mid",

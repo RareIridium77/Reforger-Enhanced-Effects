@@ -32,9 +32,9 @@ RLFX.SoundSpeed = {
 RLFX_DSP_DEFAULT = 0
 
 RLFX.DSP_Openspace = {
-    close = 1,
-    mid   = 1,
-    dist  = 1,
+    close = 0,
+    mid   = 0,
+    dist  = 0,
     far   = 8
 }
 

@@ -67,7 +67,7 @@ local function PlayDistantShotSound(data)
     local distance   = pos:Distance(ear)
 
     local dir        = (pos - ear):GetNormalized()
-    local offsetPos  = ear + dir * distance * 0.24
+    local offsetPos  = ear + dir * distance * 0.1 -- Offset to avoid sound being too close to the player
     
     local soundPath  = GetAmmoSound(ammotype, zone)
 
@@ -78,7 +78,7 @@ local function PlayDistantShotSound(data)
 
         local chan = GetNextRLFXChannel()
         local pitch = CalculatePitch(pos.z)
-        EmitSound(soundPath, offsetPos, -2, chan, 0.4, 0, SND_NOFLAGS, pitch, dsp)
+        EmitSound(soundPath, offsetPos, -1, chan, 0.75, 0, SND_NOFLAGS, pitch, dsp)
     end
     if delay <= 0 then emit() else timer.Simple(delay, emit) end
 end
@@ -104,16 +104,34 @@ net.Receive("rlfx.emit", function()
 end)
 
 hook.Add("gparticle.PostEmit", "RLFX.MuzzleFlash", function(p, j, gp)
-    if gp:GetParticleID() ~= "rlfx.muzzleflash" then return end
-    local dlight = DynamicLight(j + 1)
-    if dlight then
-        dlight.pos = p:GetPos()
-		dlight.r = 255
-		dlight.g = 150
-		dlight.b = 70
-		dlight.brightness = 4
-		dlight.decay = 2000
-		dlight.size = p:GetStartSize() * 0.75
-		dlight.dietime = CurTime() + 1
+    local particleID = gp:GetParticleID()
+
+    if particleID == "rlfx.heat.spark" then
+        local dlight = DynamicLight(j + 1)
+        if dlight then
+            dlight.pos = p:GetPos()
+            dlight.r = 255
+            dlight.g = 220
+            dlight.b = 100
+            dlight.brightness = 5
+            dlight.decay = 1000
+            dlight.size = 128
+            dlight.dietime = CurTime() + 1
+        end
+        return
+    end
+
+    if particleID == "rlfx.muzzleflash" then
+        local dlight = DynamicLight(j + 1)
+        if dlight then
+            dlight.pos = p:GetPos()
+            dlight.r = 255
+            dlight.g = 150
+            dlight.b = 70
+            dlight.brightness = 4
+            dlight.decay = 2000
+            dlight.size = p:GetStartSize() * 0.75
+            dlight.dietime = CurTime() + 1
+        end
     end
 end)
