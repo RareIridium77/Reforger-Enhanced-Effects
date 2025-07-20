@@ -7,6 +7,12 @@ hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
     if not istable(bullet) then return end
     
     local veh = bullet.Entity
+
+    if not IsValid(veh) or not veh:IsVehicle() then
+        Reforger.DevLog("LVS Bullet Fired: Invalid vehicle")
+        return
+    end
+
     local bsdt = bullet.SplashDamageType
     local btat = bullet.TracerName
     local ammo = rfxdata.TracerAmmoType[btat] or "other"
