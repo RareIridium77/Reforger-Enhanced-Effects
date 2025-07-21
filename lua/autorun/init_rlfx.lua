@@ -44,3 +44,14 @@ RLFX.DSP_Obstructed = {
     dist = 8,
     far = 16
 }
+
+local function RLFX_CheckPlayerFramework(ply)
+    timer.Simple(1, function()
+        if not IsValid(ply) then return end
+
+        if not istable(_G.Reforger) then
+            ply:ChatPrint("[Reforger] Required Reforger Framework is missing. Please install it here: https://steamcommunity.com/sharedfiles/filedetails/?id=3516478641")
+        end
+    end)
+end
+hook.Add("PlayerInitialSpawn", "Reforger.RLFX_CheckPlayerFramework", RLFX_CheckPlayerFramework)
