@@ -103,35 +103,88 @@ net.Receive("rlfx.emit", function()
     PlayDistantShotSound(data)
 end)
 
-hook.Add("gparticle.PostEmit", "RLFX.MuzzleFlash", function(p, j, gp)
-    local particleID = gp:GetParticleID()
+net.Receive("rlfx.dlight", function()
+    local index = net.ReadUInt(16)
+    local pos = net.ReadVector()
+    local r = net.ReadUInt(8)
+    local g = net.ReadUInt(8)
+    local b = net.ReadUInt(8)
+    local brightness = net.ReadFloat()
+    local decay = net.ReadFloat()
+    local delay = net.ReadFloat()
+    local size = net.ReadFloat()
 
-    if particleID == "rlfx.heat.spark" then
-        local dlight = DynamicLight(j + 1)
-        if dlight then
-            dlight.pos = p:GetPos()
-            dlight.r = 255
-            dlight.g = 220
-            dlight.b = 100
-            dlight.brightness = 5
-            dlight.decay = 1000
-            dlight.size = 128
-            dlight.dietime = CurTime() + 1
-        end
+    if not isvector(pos) then return end
+
+    local dlight = DynamicLight(index)
+    if dlight then
+        dlight.pos = pos
+        dlight.r = r
+        dlight.g = g
+        dlight.b = b
+        dlight.brightness = brightness
+        dlight.decay = decay
+        dlight.size = size
+        dlight.dietime = CurTime() + delay
+    end
+end)
+
+local allowDlight = Reforger.CreateConvar(
+    "rlfx.tracelight.allow", "1",
+    "Allow dynamic light for bullets. 0 - disable, 1 - enable",
+    0, 1
+)
+
+local tracerColorTable = {
+    ["lvs_tracer_orange"] = {255, 150, 50},
+    ["lvs_tracer_yellow"] = {255, 255, 50},
+    ["lvs_tracer_green"] = {50, 255, 50},
+    ["lvs_tracer_purple"] = {150, 50, 255},
+    ["lvs_tracer_cyan"] = {50, 255, 255},
+    ["lvs_tracer_black"] = {0, 0, 0},
+    ["lvs_tracer_white"] = {255, 255, 255},
+    ["lvs_tracer_gray"] = {150, 150, 150},
+    ["lvs_tracer_red"] = {255, 50, 50},
+    ["lvs_trace_white"] = {255, 255, 255},
+    ["lvs_tracer_blue"] = {50, 50, 255},
+}
+
+local function RLFX_traceDynamicLight()
+    if allowDlight:GetBool() == false then
+        hook.Remove("Think", "RLFX.TraceLightThink")
         return
     end
 
-    if particleID == "rlfx.muzzleflash" then
-        local dlight = DynamicLight(j + 1)
+    for id, bullet in pairs(LVS._ActiveBullets) do
+        if not istable(bullet) or not isfunction(bullet.GetBulletIndex) then continue end
+        if bullet.bulletRemoved then continue end
+
+        local index = bullet:GetBulletIndex()
+        local pos = bullet.curpos or bullet:GetPos()
+
+        local dlight = DynamicLight(index + 1)
+        local color = bullet.TracerColor or tracerColorTable[bullet.TracerName] or {255, 180, 70}
         if dlight then
-            dlight.pos = p:GetPos()
-            dlight.r = 255
-            dlight.g = 150
-            dlight.b = 70
-            dlight.brightness = 4
+            dlight.pos = pos
+            dlight.r = color[1]
+            dlight.g = color[2]
+            dlight.b = color[3]
+            dlight.brightness = 5.9
             dlight.decay = 2000
-            dlight.size = p:GetStartSize() * 0.75
+            dlight.size = 180 + bullet.HullSize
             dlight.dietime = CurTime() + 1
         end
     end
+end
+
+cvars.AddChangeCallback(allowDlight:GetName(), function(cvar, oldV, newV)
+    if tonumber(newV) == 1 then
+        hook.Add("Think", "RLFX.TraceLightThink", RLFX_traceDynamicLight)
+    else
+        hook.Remove("Think", "RLFX.TraceLightThink")
+    end
 end)
+
+if allowDlight:GetBool() then
+    hook.Add("Think", "RLFX.TraceLightThink", RLFX_traceDynamicLight)
+end

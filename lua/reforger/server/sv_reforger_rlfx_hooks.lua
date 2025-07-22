@@ -87,11 +87,8 @@ hook.Add("Reforger.LVS_Exploded", "RLFX.LVS_DestructionSFX", function(lvs)
     local pos = lvs:GetPos()
     local normal = lvs:GetUp()
 
-    timer.Simple(1, function()
-        if not IsValid(lvs) then return end
-        RLFX:EmitVehicleExplosion(pos, normal, lvs)
-        Reforger.DevLog("VehicleExplosion from", lvs, "is valid:", IsValid(lvs), "at", pos)
-    end)
+    RLFX:EmitVehicleExplosion(pos, normal, lvs)
+    Reforger.DevLog("VehicleExplosion from", lvs, "is valid:", IsValid(lvs), "at", pos)
 end)
 
 concommand.Add("test_emit_explosion", function(ply, cmd)
