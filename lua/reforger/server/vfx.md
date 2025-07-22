@@ -63,3 +63,18 @@ Includes:
 - Two-stage fire flash  
 - Smoke trails  
 - Shockwave dust if `doDust` is enabled
+
+---
+
+### RLFX:EmitBulletHit(pos, normal, ent)
+
+Main bullet impact effect spawner
+
+- `pos` — impact position
+- `normal` — impact normal
+- `ent` — vehicle or gun entity. If entity is valid impact includes spark effect.
+
+Includes:
+- Dust effect on `pos`
+- If `ent` provided in arguments and is valid effect will include spark effect.
+

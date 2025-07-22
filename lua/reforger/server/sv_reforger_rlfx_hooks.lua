@@ -80,17 +80,17 @@ hook.Add("Reforger.LVS_ProjectileActivated", "RLFX.LVS_MissileSFX", function(mis
 end)
 
 hook.Add("Reforger.LVS_Exploded", "RLFX.LVS_DestructionSFX", function(lvs)
-    if not IsValid(lvs) then return end
+    if not IsValid(lvs) and lvs.reforgerExploded  then return end
+
     RLFX:EmitSound(lvs:GetPos(), "tank_explosion")
 
     local pos = lvs:GetPos()
     local normal = lvs:GetUp()
-    local ent = lvs
 
     timer.Simple(1, function()
-        if not IsValid(ent) then return end
-        RLFX:EmitVehicleExplosion(pos, normal, ent)
-        print("VehicleExplosion from", ent, "is valid:", IsValid(ent), "at", pos)
+        if not IsValid(lvs) then return end
+        RLFX:EmitVehicleExplosion(pos, normal, lvs)
+        Reforger.DevLog("VehicleExplosion from", lvs, "is valid:", IsValid(lvs), "at", pos)
     end)
 end)
 
