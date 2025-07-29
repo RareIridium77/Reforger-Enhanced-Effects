@@ -33,18 +33,14 @@ function RLFX:EmitSound(pos, ammotype)
         if not delay then
             delay = rfxutil:GetSoundDelay(dist, soundSpeed, pos.z)
             zone = RLFX:GetZone(dist)
-            obstructed = rfxutil:IsObstructed(pos, earPos)
-            dsp = RLFX:GetDSPForZone(zone, obstructed)
             cached[key] = {delay, zone, obstructed, dsp}
         end
 
-        net.Start("rlfx.emit", false)
+        net.Start("rlfx.emit", true)
         net.WriteVector(pos)
         net.WriteString(ammotype)
         net.WriteFloat(delay)
         net.WriteString(zone)
-        net.WriteBool(obstructed)
-        net.WriteUInt(dsp, 8)
         net.Send(ply)
     end
 end

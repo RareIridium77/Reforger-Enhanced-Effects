@@ -17,16 +17,6 @@ function RLFX.Util:GetSoundDelay(d, csp, altitude)
     return d * 0.01905 / speed
 end
 
-function RLFX.Util:IsObstructed(startPos, endPos)
-    local tr = util.TraceLine({
-        start = startPos,
-        endpos = endPos,
-        mask = MASK_SOLID_BRUSHONLY
-    })
-
-    return tr.Hit
-end
-
 local bullets = Reforger.Bullets
 
 function RLFX.Util:GetImpactType(bullet, atypedata)

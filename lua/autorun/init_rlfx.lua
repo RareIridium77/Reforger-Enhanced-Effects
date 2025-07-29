@@ -31,20 +31,6 @@ RLFX.SoundSpeed = {
 
 RLFX_DSP_DEFAULT = 0
 
-RLFX.DSP_Openspace = {
-    close = 0,
-    mid   = 0,
-    dist  = 0,
-    far   = 8
-}
-
-RLFX.DSP_Obstructed = {
-    close = 1,
-    mid = 0,
-    dist = 8,
-    far = 16
-}
-
 local function RLFX_CheckPlayerFramework(ply)
     timer.Simple(1, function()
         if not IsValid(ply) then return end

@@ -4,6 +4,8 @@ local rlfx_channel_index = 0 -- DO NOT TOUCH
 local rlfx_channel_base = CHAN_RLFX -- DO NOT TOUCH
 local rlfx_channel_max = 64 -- DO NOT TOUCH
 local rlfx_emit_count = 0 -- DO NOT TOUCH
+local cur_dsp = 0
+local cur_channel = CHAN_AUTO
 
 local function CalculatePitch(height)
     local minPitch = 90
@@ -60,14 +62,12 @@ local function PlayDistantShotSound(data)
     local ammotype   = data[2]
     local delay      = data[3]
     local zone       = data[4]
-    local obstructed = data[5]
-    local dsp        = data[6]
 
     local ear        = ply:EyePos()
     local distance   = pos:Distance(ear)
 
     local dir        = (pos - ear):GetNormalized()
-    local offsetPos  = ear + dir * distance * 0.1 -- Offset to avoid sound being too close to the player
+    local offsetPos  = ear + dir * distance * 0.2 -- Offset to avoid sound being too close to the player
     
     local soundPath  = GetAmmoSound(ammotype, zone)
 
@@ -76,9 +76,8 @@ local function PlayDistantShotSound(data)
 
         debugoverlay.Sphere(offsetPos, 10, 0.1, Color(255, 0, 0), true)
 
-        local chan = GetNextRLFXChannel()
         local pitch = CalculatePitch(pos.z)
-        EmitSound(soundPath, offsetPos, -1, chan, 0.75, 0, SND_NOFLAGS, pitch, dsp)
+        EmitSound(soundPath, offsetPos, -1, cur_channel, 0.75, 0, SND_NOFLAGS, pitch, cur_dsp)
     end
     if delay <= 0 then emit() else timer.Simple(delay, emit) end
 end
@@ -88,17 +87,15 @@ net.Receive("rlfx.emit", function()
     local ammotype = net.ReadString()
     local delay = net.ReadFloat()
     local zone = net.ReadString()
-    local obstructed = net.ReadBool()
-    local dsp = net.ReadUInt(8)
 
     data = {
         [1] = pos,
         [2] = ammotype,
         [3] = delay,
         [4] = zone,
-        [5] = obstructed,
-        [6] = dsp
     }
+
+    cur_channel = GetNextRLFXChannel()
     
     PlayDistantShotSound(data)
 end)

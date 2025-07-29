@@ -10,7 +10,6 @@ function RLFX:GetZone(distance)
     return "far"
 end
 
-function RLFX:GetDSPForZone(zone, obstructed)
-    if not zone then return RLFX_DSP_DEFAULT end
-    return (obstructed and RLFX.DSP_Obstructed[zone]) or RLFX.DSP_Openspace[zone] or RLFX_DSP_DEFAULT
+function RLFX:GetDSPForZone()
+    return RLFX_DSP_DEFAULT
 end
