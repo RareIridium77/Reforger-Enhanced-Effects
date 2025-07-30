@@ -13,15 +13,27 @@ local drawDebugHUD = Reforger.CreateConvar(
     0, 1
 )
 
-local function CalculatePitch(height)
-    local minPitch = 90
-    local maxPitch = 110
-    local baseHeight = 0
-    local maxHeight = 10000
+local function CalculatePitchHeightDiff(sourceZ, listenerZ)
+    local minPitch = 65
+    local maxPitch = 100
+    local maxDelta = 4096 -- max height diffrence when pitch changes
 
-    local frac = math.Clamp((height - baseHeight) / (maxHeight - baseHeight), 0, 1)
-    return Lerp(1 - frac, maxPitch, minPitch)
+    local heightDiff = math.Clamp(sourceZ - listenerZ, -maxDelta, maxDelta)
+
+    local frac = (heightDiff + maxDelta) / (2 * maxDelta) -- [0, 1]
+    return Lerp(1- frac, minPitch, maxPitch)
 end
+
+local fallbackHierarchy = {
+	["far_obstructed"] = { "dist_obstructed", "mid_obstructed", "close_obstructed" },
+	["far"] = { "dist", "mid", "close" },
+	["dist_obstructed"] = { "mid_obstructed", "close_obstructed" },
+	["dist"] = { "mid", "close" },
+	["mid_obstructed"] = { "close_obstructed" },
+	["mid"] = { "close" },
+	["close_obstructed"] = {},
+	["close"] = {},
+}
 
 local function GetAmmoSound(ammotype, zone)
 	if not isstring(ammotype) or not isstring(zone) then
@@ -33,15 +45,27 @@ local function GetAmmoSound(ammotype, zone)
 		return RLFX_DEFAULT_SOUND
 	end
 
+	-- 1. Try primary zone
 	local entry = typeTable[zone]
 	if istable(entry) and istable(entry.paths) and #entry.paths > 0 then
 		return entry.paths[math.random(#entry.paths)]
 	end
 
-	for _, fallback in ipairs(RLFX.FallbackZones or {}) do
-		local fb = typeTable[fallback]
-		if istable(fb) and istable(fb.paths) and #fb.paths > 0 then
-			return fb.paths[math.random(#fb.paths)]
+	-- 2. Try hierarchical fallback
+	local fallbackZones = fallbackHierarchy[zone]
+	if fallbackZones then
+		for _, fallback in ipairs(fallbackZones) do
+			local fb = typeTable[fallback]
+			if istable(fb) and istable(fb.paths) and #fb.paths > 0 then
+				return fb.paths[math.random(#fb.paths)]
+			end
+		end
+	end
+
+	-- 3. Try anything else (hard fallback)
+	for _, fbZone in pairs(typeTable) do
+		if istable(fbZone) and istable(fbZone.paths) and #fbZone.paths > 0 then
+			return fbZone.paths[math.random(#fbZone.paths)]
 		end
 	end
 
@@ -73,34 +97,14 @@ local function PlayDistantShotSound(data)
     local distance   = pos:Distance(ear)
 
     local dir        = (pos - ear):GetNormalized()
-    local offsetPos  = ear + dir * distance * 0.2
+    local offsetPos  = ear + dir * distance * 0.75
 
     local soundPath  = GetAmmoSound(ammotype, zone)
-    
+    local pitch = CalculatePitchHeightDiff(pos.z, ear.z)
+
     local function emit()
         if not IsValid(ply) then return end
-
-        if Reforger.IsDeveloper() then
-            local zones = RLFX.DistanceZones or {}
-            local colors = {
-                close = Color(0, 255, 0),
-                mid   = Color(255, 255, 0),
-                dist  = Color(255, 128, 0),
-                far   = Color(255, 0, 0)
-            }
-
-            local dir = (ear - pos):GetNormalized()
-
-            for _, z in ipairs(zones) do
-                local point = pos + dir * z.max
-                debugoverlay.Box(point, Vector(-5, -5, -5), Vector(5, 5, 5), 2, colors[z.name] or color_white)
-                debugoverlay.Text(point + Vector(0, 0, 10), z.name, 2, true)
-                debugoverlay.Line(pos, point, 2, colors[z.name])
-            end
-        end
-
-        local pitch = CalculatePitch(pos.z)
-        EmitSound(soundPath, offsetPos, -1, cur_channel, 1.2, 0, SND_NOFLAGS, pitch)
+        EmitSound(soundPath, offsetPos, -2, cur_channel, 1.2, 0, SND_NOFLAGS, pitch)
     end
 
     if Reforger.IsDeveloper() and drawDebugHUD:GetBool() then
@@ -108,9 +112,12 @@ local function PlayDistantShotSound(data)
             time = CurTime(),
             zone = zone,
             sound = soundPath,
+            pitch = pitch,
             distance = distance,
             pos = pos,
-            expires = CurTime() + 2
+            delay = delay,
+            delayEndTime = CurTime() + delay,
+            expires = CurTime() + math.max(delay + 1.5, 2)
         })
     end
 
@@ -230,24 +237,63 @@ hook.Add("HUDPaint", "RLFX.DebugHUD", function()
 
     local w, h = ScrW(), ScrH()
     local x, y = 50, 100
-    local font = "DermaDefault"
-    draw.SimpleText("RLFX DEBUG HUD", font, x, y, color_white, TEXT_ALIGN_LEFT)
-    y = y + 20
+    local font = "DefaultBold"
+
+    draw.SimpleText("RLFX DEBUG HUD", font, x, y, Color(255, 255, 255), TEXT_ALIGN_LEFT)
+    y = y + 30
 
     local now = CurTime()
+    local entries = {}
+
     for i = #RLFX.DebugData, 1, -1 do
         local entry = RLFX.DebugData[i]
         if now > entry.expires then
             table.remove(RLFX.DebugData, i)
         else
-            local text = string.format(
-                "[%s] %s (%.1fm)", 
-                entry.zone or "???", 
-                entry.sound or "unknown", 
-                (entry.distance or 0) / 52.493 // ~meters
-            )
-            draw.SimpleText(text, font, x, y, color_white, TEXT_ALIGN_LEFT)
-            y = y + 15
+            table.insert(entries, entry)
         end
+    end
+
+    table.sort(entries, function(a, b)
+        return (a.distance or 0) < (b.distance or 0)
+    end)
+
+    local zoneColors = {
+        close = Color(124, 255, 124),
+        mid   = Color(255, 255, 109),
+        dist  = Color(255, 181, 108),
+        far   = Color(255, 185, 185)
+    }
+
+    for _, entry in ipairs(entries) do
+        local zone = entry.zone or "???"
+        local sound = entry.sound or "unknown"
+        local dist = (entry.distance or 0) / 52.493
+        local pitch = entry.pitch or "?"
+        local pitchValue = tonumber(pitch) or 100
+        local pitchFrac = math.Clamp((pitchValue - 65) / (150 - 65), 0, 1)
+        local barWidth = 100
+        local barHeight = 6
+
+        surface.SetDrawColor(40, 40, 40, 200)
+        surface.DrawRect(x, y + 2, barWidth, barHeight)
+
+        surface.SetDrawColor(100, 200, 255, 255)
+        surface.DrawRect(x, y + 2, pitchFrac * barWidth, barHeight)
+
+        y = y + barHeight + 4
+        
+        local delayLeft = math.max(0, (entry.delayEndTime or 0) - CurTime())
+        local delayStr = delayLeft > 0 and string.format("delay: %.2fs", delayLeft) or "emitted"
+
+        local color = zoneColors[zone] or Color(180, 180, 180)
+
+        local text = string.format(
+            "[%s] %s | %.1fm | pitch: %s | %s",
+            zone, sound, dist, pitch, delayStr
+        )
+
+        draw.SimpleText(text, font, x, y, color, TEXT_ALIGN_LEFT)
+        y = y + 18
     end
 end)

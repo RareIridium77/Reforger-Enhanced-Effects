@@ -46,7 +46,7 @@ hook.Add("Reforger.LVS_BulletCallback", "RLFX.LVS_BulletCallback", function(bull
         RLFX:EmitHEATRound(trace.HitPos, trace.HitNormal, trace.Entity)
     end
 
-    RLFX:EmitSound(trace.HitPos, impact)
+    RLFX:EmitSound(trace.HitPos, impact.name)
 end)
 
 --- [ LVS Projectile Detonated ] ---

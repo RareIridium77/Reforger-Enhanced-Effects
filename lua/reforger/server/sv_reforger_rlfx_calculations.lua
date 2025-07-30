@@ -4,10 +4,7 @@ function RLFX:IsObstructed(from, to)
     local tr = util.TraceLine({
         start = from,
         endpos = to,
-        mask = MASK_BLOCKLOS_AND_NPCS,
-        filter = function(ent)
-            return not ent:IsPlayer()
-        end
+        mask = MASK_SOLID_BRUSHONLY,
     })
     return tr.Hit and not tr.StartSolid
 end
@@ -16,7 +13,7 @@ function RLFX:GetZone(from, to, distance, ammoType)
     local isObstructed = self:IsObstructed(from, to)
     local sounds = RLFX.CachedSounds[ammoType]
 
-    for i = 1, #self.DistanceZones do
+    for i = #self.DistanceZones, 1, -1 do
         local zone = self.DistanceZones[i]
         if distance >= zone.min and distance < zone.max then
             local zoneName = zone.name

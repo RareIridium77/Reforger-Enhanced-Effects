@@ -39,10 +39,7 @@ function RLFX:EmitSound(pos, ammotype, zoneOverride)
     for _, ply in ipairs(humanPlayers) do
         if not IsValid(ply) then continue end
 
-        local viewEntity = ply:GetViewEntity()
-        if not IsValid(viewEntity) then continue end
-
-        local earPos = viewEntity:GetPos()
+        local earPos = ply:EyePos()
         local dist = pos:Distance(earPos)
 
         if dist < minDistanceCvar:GetFloat() or dist > maxDistanceCvar:GetFloat() then continue end
