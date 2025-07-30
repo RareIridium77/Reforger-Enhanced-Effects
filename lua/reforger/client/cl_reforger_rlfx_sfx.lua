@@ -1,10 +1,17 @@
 RLFX = RLFX or {}
 RLFX.DebugData = RLFX.DebugData or {}
 
+local channelThresholdCvar = Reforger.CreateConvar(
+    "rlfx.channel.threshold", "2",
+    "How many sound needed play to change sound channel? Set more than 1 if you have lags.",
+    1, 10
+)
+
 local rlfx_channel_index = 0 -- DO NOT TOUCH
 local rlfx_channel_base = CHAN_RLFX -- DO NOT TOUCH
 local rlfx_channel_max = 64 -- DO NOT TOUCH
 local rlfx_emit_count = 0 -- DO NOT TOUCH
+
 local cur_channel = CHAN_AUTO
 
 local drawDebugHUD = Reforger.CreateConvar(
@@ -76,7 +83,7 @@ local function GetNextRLFXChannel()
     local chan = rlfx_channel_base + rlfx_channel_index
 
     rlfx_emit_count = rlfx_emit_count + 1
-    if rlfx_emit_count >= 3 then
+    if rlfx_emit_count >= channelThresholdCvar:GetInt() then
         rlfx_emit_count = 0
         rlfx_channel_index = (rlfx_channel_index + 1) % rlfx_channel_max
     end
