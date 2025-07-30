@@ -69,7 +69,7 @@ def make_distance_variants(original_path, original_rel, dst_root):
         subprocess.run([
             "ffmpeg", "-y",
             "-i", original_path,
-            "-af", "volume=4,highpass=f=60,aecho=0.8:0.9:100|180:0.3|0.25",
+            "-af", "volume=7.5,bass=g=12:f=80,highpass=f=120",
             "-ar", str(TARGET_RATE),
             "-ac", "1",
             "-sample_fmt", "s16",
@@ -78,8 +78,9 @@ def make_distance_variants(original_path, original_rel, dst_root):
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     variants = {
-        "mid":  "volume=1,lowpass=f=2000",
-        "dist": "lowpass=f=1200,volume=1"
+        "mid":  "volume=2.25,highpass=f=120,bass=g=12:f=80",
+        "dist": "lowpass=f=1200,volume=1",
+        "far":  "lowpass=f=800,volume=0.25,bass=g=12:f=150",
     }
 
     for variant, afilter in variants.items():
@@ -96,7 +97,7 @@ def make_distance_variants(original_path, original_rel, dst_root):
             "-i", close_path,
             "-af", afilter,
             "-ar", str(TARGET_RATE),
-            "-ac", "1",
+            "-ac", "2",
             "-sample_fmt", "s16",
             "-f", "wav",
             variant_path
@@ -130,9 +131,9 @@ def make_obstructed_version(original_path, original_rel, dst_root):
     result = subprocess.run([
         "ffmpeg", "-y",
         "-i", original_path,
-        "-af", "lowpass=f=600,volume=0.85",
+        "-af", "lowpass=f=600,volume=0.95",
         "-ar", str(TARGET_RATE),
-        "-ac", "1",
+        "-ac", "2",
         "-sample_fmt", "s16",
         "-f", "wav",
         obstructed_path
@@ -157,10 +158,10 @@ def convert_wav(src_path, dst_path, rel_path, dst_root):
         "ffmpeg", "-y",
         "-i", src_path,
         "-ar", str(TARGET_RATE),
-        "-ac", "1",
+        "-ac", "2",
         "-sample_fmt", "s16",
         "-f", "wav",
-        "-af", "loudnorm",
+        "-af", "loudnorm,bass=g=12:f=20",
         dst_path
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

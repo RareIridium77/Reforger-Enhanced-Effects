@@ -1,19 +1,30 @@
 GParticleSystem:RegisterCycle("rlfx.heat.sparkles", function(p, i, gp)
     local rnd = math.Rand
     local rn = math.random
+    local count = gp:GetCount()
+    local normal = gp:GetNormal()
+    local frac = (i / count)
+    local dir = VectorRand()
 
-    local dir = VectorRand():GetNormalized()
+    if frac >= 0.5 then
+        p:SetVelocity(dir * 20)
+        p:SetCollide(false)
+    else
+        p:SetVelocity(normal * 250 + dir * rnd(20, 100))
+        p:SetCollide(true)
+    end
 
-    p:SetVelocity(dir * rnd(300, 480))
     p:SetStartAlpha(255)
     p:SetEndAlpha(0)
-    p:SetStartSize(rnd(0.5, 1.2))
+    p:SetStartSize(rnd(4, 7))
     p:SetEndSize(0)
     p:SetGravity(Vector(0, 0, -1000))
     p:SetAirResistance(20)
-    p:SetCollide(true)
     p:SetBounce(0.3)
     p:SetLighting(false)
+    p:SetCollideCallback(function(particle, hitPos, hitNormal)
+        particle:SetPos(hitPos + normal * 0.5)
+    end)
 
     p:SetColor(
         rn(240, 255),
@@ -35,7 +46,7 @@ GParticleSystem:RegisterCycle("rlfx.explosion.small", function(p, i, gp)
     p:SetStartAlpha(240 * (1 - frac * 0.3))
     p:SetEndAlpha(0)
 
-    p:SetStartSize(rnd(18, 28) * (1 + frac * 0.5))
+    p:SetStartSize(rnd(150, 200) * (1 + frac * 0.5))
     p:SetEndSize(rnd(60, 90))
 
     p:SetAirResistance(rnd(60, 90))
@@ -125,7 +136,7 @@ GParticleSystem:RegisterCycle("rlfx.shot.muzzle", function(p, i, gp)
     p:SetVelocity(normal * rnd(50, 100) + VectorRand() * 10)
     p:SetStartAlpha(100)
     p:SetEndAlpha(0)
-    p:SetStartSize(rnd(6, 10))
+    p:SetStartSize(rnd(120, 150))
     p:SetEndSize(rnd(20, 40))
     p:SetDieTime(rnd(2.5, 3.5))
     p:SetAirResistance(60)

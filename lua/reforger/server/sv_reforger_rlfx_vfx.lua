@@ -42,9 +42,10 @@ end)
 
 function RLFX:EmitSparkles(pos, normal, count)
     emitParticle({
-        pos = pos,
+        pos = pos + normal * 10,
+        lifetime = math.Rand(0.35, 15),
         particleID = "rlfx.heat.sparkles",
-        effectName = "particle/sparkles",
+        effectName = "particle/particle_glow_05_addnofog",
         count = count or 100,
         repeatCount = 2,
         repeatDelay = 0.005,
@@ -130,17 +131,10 @@ function RLFX:EmitHERound(pos, normal)
 end
 
 function RLFX:EmitHEATRound(pos, normal, ent)
-    RLFX:EmitSparkles(pos, normal, 25)
+    RLFX:EmitSparkles(pos, normal, 120)
 
-    emitParticle({
-        pos = pos,
-        particleID = "rlfx.explosion.small",
-        lifetime = 0.24,
-        effectName = "particle/particle_glow_04_additive",
-        normal = normal,
-        count = 16,
-        emitRate = 0,
-    })
+    debugoverlay.Sphere(pos, 10, 4, Color(255, 2, 2), true)
+    debugoverlay.Text(pos + Vector(0, 0, 20), "HEAT", 5, false)
 
     if IsValid(ent) then
         RLFX:SendDLight(pos, 255, 100, 40, 8, 2000, 1, 512)
@@ -150,7 +144,7 @@ end
 
 function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
     emitParticle({
-        pos = pos,
+        pos = pos + normal * 5,
         particleID = "rlfx.shot.muzzle",
         effectName = "particle/particle_glow_04_additive",
         normal = normal,
@@ -159,7 +153,7 @@ function RLFX:EmitShot(pos, normal, startSize, ent, doDust)
 
     if doDust then
         emitParticle({
-            pos = pos,
+            pos = pos + normal * 5,
             particleID = "rlfx.shot.dust",
             effectName = "particle/particle_smokegrenade",
             normal = normal,
@@ -170,7 +164,7 @@ end
 
 function RLFX:EmitBulletHit(pos, normal, ent)
     emitParticle({
-        pos = pos,
+        pos = pos + normal * 5,
         particleID = "rlfx.shot.dust",
         effectName = "particle/particle_glow_04_additive",
         normal = normal,
@@ -178,7 +172,7 @@ function RLFX:EmitBulletHit(pos, normal, ent)
     })
 
     if IsValid(ent) then
-        RLFX:EmitSparkles(pos, normal, 15)
+        RLFX:EmitSparkles(pos, normal, 5)
         RLFX:SendDLight(pos, 255, 100, 40, 4, 2000, 1, 384)
     end
 end
