@@ -15,7 +15,7 @@ local drawDebugHUD = Reforger.CreateConvar(
 
 local function CalculatePitchHeightDiff(sourceZ, listenerZ)
     local minPitch = 65
-    local maxPitch = 100
+    local maxPitch = 120
     local maxDelta = 4096 -- max height diffrence when pitch changes
 
     local heightDiff = math.Clamp(sourceZ - listenerZ, -maxDelta, maxDelta)
@@ -271,7 +271,7 @@ hook.Add("HUDPaint", "RLFX.DebugHUD", function()
         local dist = (entry.distance or 0) / 52.493
         local pitch = entry.pitch or "?"
         local pitchValue = tonumber(pitch) or 100
-        local pitchFrac = math.Clamp((pitchValue - 65) / (150 - 65), 0, 1)
+        local pitchFrac = math.Clamp((pitchValue - 65) / (120 - 65), 0, 1)
         local barWidth = 100
         local barHeight = 6
 
