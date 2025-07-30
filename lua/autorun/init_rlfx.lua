@@ -7,10 +7,10 @@ RLFX_DEFAULT_SOUND = "ambient/voices/squeal1.wav"
 
 --- [ Distance Zones ] ---
 RLFX.DistanceZones = {
-    { name = "close", min = 0,     max = 512 },
-    { name = "mid",   min = 512,  max = 2048 },
-    { name = "dist",  min = 2048,  max = 12500 },
-    { name = "far",   min = 12500, max = math.huge }
+    { name = "close", min = 0,     max = 2048 },
+    { name = "mid",   min = 2048,  max = 8096 },
+    { name = "dist",  min = 8096,  max = 12288 },
+    { name = "far",   min = 12288, max = math.huge }
 }
 
 RLFX.FallbackZones = { "close", "mid", "dist", "far" }

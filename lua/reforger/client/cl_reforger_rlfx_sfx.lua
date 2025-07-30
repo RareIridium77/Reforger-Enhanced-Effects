@@ -1,11 +1,17 @@
 RLFX = RLFX or {}
+RLFX.DebugData = RLFX.DebugData or {}
 
 local rlfx_channel_index = 0 -- DO NOT TOUCH
 local rlfx_channel_base = CHAN_RLFX -- DO NOT TOUCH
 local rlfx_channel_max = 64 -- DO NOT TOUCH
 local rlfx_emit_count = 0 -- DO NOT TOUCH
-local cur_dsp = 0
 local cur_channel = CHAN_AUTO
+
+local drawDebugHUD = Reforger.CreateConvar(
+    "rlfx.debug.hud", "0",
+    "Debug hud for RLFX. 0 - disable, 1 - enable",
+    0, 1
+)
 
 local function CalculatePitch(height)
     local minPitch = 90
@@ -67,19 +73,52 @@ local function PlayDistantShotSound(data)
     local distance   = pos:Distance(ear)
 
     local dir        = (pos - ear):GetNormalized()
-    local offsetPos  = ear + dir * distance * 0.2 -- Offset to avoid sound being too close to the player
-    
-    local soundPath  = GetAmmoSound(ammotype, zone)
+    local offsetPos  = ear + dir * distance * 0.2
 
+    local soundPath  = GetAmmoSound(ammotype, zone)
+    
     local function emit()
         if not IsValid(ply) then return end
 
-        debugoverlay.Sphere(offsetPos, 10, 0.1, Color(255, 0, 0), true)
+        if Reforger.IsDeveloper() then
+            local zones = RLFX.DistanceZones or {}
+            local colors = {
+                close = Color(0, 255, 0),
+                mid   = Color(255, 255, 0),
+                dist  = Color(255, 128, 0),
+                far   = Color(255, 0, 0)
+            }
+
+            local dir = (ear - pos):GetNormalized()
+
+            for _, z in ipairs(zones) do
+                local point = pos + dir * z.max
+                debugoverlay.Box(point, Vector(-5, -5, -5), Vector(5, 5, 5), 2, colors[z.name] or color_white)
+                debugoverlay.Text(point + Vector(0, 0, 10), z.name, 2, true)
+                debugoverlay.Line(pos, point, 2, colors[z.name])
+            end
+        end
 
         local pitch = CalculatePitch(pos.z)
-        EmitSound(soundPath, offsetPos, -1, cur_channel, 0.75, 0, SND_NOFLAGS, pitch, cur_dsp)
+        EmitSound(soundPath, offsetPos, -1, cur_channel, 1.2, 0, SND_NOFLAGS, pitch)
     end
-    if delay <= 0 then emit() else timer.Simple(delay, emit) end
+
+    if Reforger.IsDeveloper() and drawDebugHUD:GetBool() then
+        table.insert(RLFX.DebugData, {
+            time = CurTime(),
+            zone = zone,
+            sound = soundPath,
+            distance = distance,
+            pos = pos,
+            expires = CurTime() + 2
+        })
+    end
+
+    if delay <= 0 then
+        emit()
+    else
+        timer.Simple(delay, emit)
+    end
 end
 
 net.Receive("rlfx.emit", function()
@@ -185,3 +224,30 @@ end)
 if allowDlight:GetBool() then
     hook.Add("Think", "RLFX.TraceLightThink", RLFX_traceDynamicLight)
 end
+
+hook.Add("HUDPaint", "RLFX.DebugHUD", function()
+    if not Reforger.IsDeveloper() or not drawDebugHUD:GetBool() then return end
+
+    local w, h = ScrW(), ScrH()
+    local x, y = 50, 100
+    local font = "DermaDefault"
+    draw.SimpleText("RLFX DEBUG HUD", font, x, y, color_white, TEXT_ALIGN_LEFT)
+    y = y + 20
+
+    local now = CurTime()
+    for i = #RLFX.DebugData, 1, -1 do
+        local entry = RLFX.DebugData[i]
+        if now > entry.expires then
+            table.remove(RLFX.DebugData, i)
+        else
+            local text = string.format(
+                "[%s] %s (%.1fm)", 
+                entry.zone or "???", 
+                entry.sound or "unknown", 
+                (entry.distance or 0) / 52.493 // ~meters
+            )
+            draw.SimpleText(text, font, x, y, color_white, TEXT_ALIGN_LEFT)
+            y = y + 15
+        end
+    end
+end)
