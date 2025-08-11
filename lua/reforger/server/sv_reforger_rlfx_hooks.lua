@@ -63,7 +63,7 @@ end)
 
 -- [ LVS Bullet Hit ] ---
 hook.Add("Reforger.LVS_BulletCallback", "RLFX.LVS_BulletCallback", function(bullet, trace)
-    if not (istable(trace) and trace.Hit) then return end
+    if not istable(trace) or not trace.Hit then return end
     if IsValid(trace.Entity) then return end
 
     if not rfxdata.ValidSplashDamage[bullet.SplashDamageType] then return end
