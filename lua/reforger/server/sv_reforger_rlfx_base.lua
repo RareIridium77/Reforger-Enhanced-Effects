@@ -72,8 +72,8 @@ local defaultImpactTypes = {
     { "lvs_tracer_autocannon",           "exp_mid",   true,  false },
     { "lvs_haubitze_trail",              "exp_mid",   false, false },
     { "lvs_haubitze_trail_improved",     "exp_mid",   false, false },
-    { "lvs_tracer_cannon",               "exp_large", false, false },
-    { "lvs_tracer_cannon_improved",      "exp_large", false, false },
+    { "lvs_tracer_cannon",               "exp_large", false, true },
+    { "lvs_tracer_cannon_improved",      "exp_large", false, true },
 }
 
 for _, entry in ipairs(defaultImpactTypes) do

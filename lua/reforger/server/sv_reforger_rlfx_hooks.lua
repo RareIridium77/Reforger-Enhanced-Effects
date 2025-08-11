@@ -30,9 +30,42 @@ hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
     RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * power, veh, true)
 end)
 
---- [ LVS Bullet Hit ] ---
+local rfdamage = Reforger.Damage
+
+hook.Add("Reforger.ReforgerTookDamage", "RLFX.EntityTakeDamage", function(dmginfo, attacker, victim)
+    local damagePos = dmginfo:GetDamagePosition()
+    local damageForce = dmginfo:GetDamageForce()
+    local damageNormal = -damageForce:GetNormalized()
+    local damageType = dmginfo:GetDamageType()
+    local isExplosion = rfdamage.HasDamageType(damageType, DMG_BLAST)
+    local isHeat = rfdamage.HasDamageType(damageType, DMG_AIRBOAT)
+    local isSonic = rfdamage.HasDamageType(damageType, DMG_SONIC)
+    local isSmall = rfdamage.IsSmallDamageType(damageType)
+
+    if damagePos:IsZero() then return end
+    if isSmall then return end
+    
+    if isSonic then
+        RLFX:EmitBulletHit(damagePos, damageNormal, victim)
+        return
+    end
+    
+    if isExplosion then
+        RLFX:EmitHERound(damagePos, damageNormal)
+    else
+        RLFX:EmitHEATRound(damagePos, damageNormal, victim)
+    end
+    
+    debugoverlay.Sphere(damagePos + damageNormal * 2, 5, 1, Color(255, 255, 25), true)
+    
+    RLFX:EmitSound(damagePos, isExplosion)
+end)
+
+-- [ LVS Bullet Hit ] ---
 hook.Add("Reforger.LVS_BulletCallback", "RLFX.LVS_BulletCallback", function(bullet, trace)
     if not (istable(trace) and trace.Hit) then return end
+    if IsValid(trace.Entity) then return end
+
     if not rfxdata.ValidSplashDamage[bullet.SplashDamageType] then return end
 
     debugoverlay.Sphere(trace.HitPos + trace.HitNormal * 2, 5, 1, Color(255, 255, 25), true)
@@ -41,14 +74,14 @@ hook.Add("Reforger.LVS_BulletCallback", "RLFX.LVS_BulletCallback", function(bull
     local isSonic = bullet.SplashDamageType == DMG_SONIC and not impact
 
     if isSonic then
-        RLFX:EmitBulletHit(trace.HitPos, trace.HitNormal, trace.Entity)
+        RLFX:EmitBulletHit(trace.HitPos, trace.HitNormal)
         return
     end
 
-    if impact and impact.he then
+    if impact and not impact.heat then
         RLFX:EmitHERound(trace.HitPos, trace.HitNormal)
     else
-        RLFX:EmitHEATRound(trace.HitPos, trace.HitNormal, trace.Entity)
+        RLFX:EmitHEATRound(trace.HitPos, trace.HitNormal)
     end
 
     RLFX:EmitSound(trace.HitPos, impact and impact.name or "other")

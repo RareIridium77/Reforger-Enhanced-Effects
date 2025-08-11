@@ -9,7 +9,7 @@ local channelThresholdCvar = Reforger.CreateConvar(
 
 local rlfx_channel_index = 0 -- DO NOT TOUCH
 local rlfx_channel_base = CHAN_RLFX -- DO NOT TOUCH
-local rlfx_channel_max = 64 -- DO NOT TOUCH
+local rlfx_channel_max = 78 -- DO NOT TOUCH
 local rlfx_emit_count = 0 -- DO NOT TOUCH
 
 local cur_channel = CHAN_AUTO
@@ -104,14 +104,15 @@ local function PlayDistantShotSound(data)
     local distance   = pos:Distance(ear)
 
     local dir        = (pos - ear):GetNormalized()
-    local offsetPos  = ear + dir * distance * 0.75
+    local offsetPos  = ear + dir * distance * 0.5
 
     local soundPath  = GetAmmoSound(ammotype, zone)
     local pitch = CalculatePitchHeightDiff(pos.z, ear.z)
-
+    local volume = 1
     local function emit()
         if not IsValid(ply) then return end
-        EmitSound(soundPath, offsetPos, -2, cur_channel, 1.2, 0, SND_NOFLAGS, pitch)
+        debugoverlay.Sphere(offsetPos, 5, 1, Color(111, 0, 255), true)
+        EmitSound(soundPath, offsetPos, -1, cur_channel, volume, 150, SND_CHANGE_VOL, pitch, 1)
     end
 
     if Reforger.IsDeveloper() and drawDebugHUD:GetBool() then
