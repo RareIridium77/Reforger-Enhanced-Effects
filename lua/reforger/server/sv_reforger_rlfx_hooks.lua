@@ -6,6 +6,7 @@ hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
     if not istable(bullet) then return end
     
     local veh = bullet.Entity
+    local attacker = bullet.Attacker
 
     if not IsValid(veh) then return end
 
@@ -19,6 +20,10 @@ hook.Add("Reforger.LVS_BulletFired", "RLFX.LVS_BulletFired", function(bullet)
         local power = isLight and 0.3 or 0.05
         RLFX:EmitShot(bullet.Src, bullet.StartDir, bullet.Force * power, veh, false)
         return
+    end
+
+    if IsValid(attacker) and attacker:IsPlayer() and attacker.ReforgerShakeView then
+        attacker:ReforgerShakeView(bullet.Force, nil) // NOTE nil - auto duration
     end
 
     local power = (bullet.SplashDamageType == DMG_BLAST) and 0.8 or 0.4
