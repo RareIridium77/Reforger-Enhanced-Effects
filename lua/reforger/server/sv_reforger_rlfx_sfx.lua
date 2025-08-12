@@ -56,3 +56,21 @@ function RLFX:EmitSound(pos, ammotype, zoneOverride)
         net.Send(ply)
     end
 end
+
+local function BulletCallback(bullet, trace)
+    if not istable(trace) or not trace.Hit then return end
+    local tracerName = bullet.TracerName or ""
+    local impactType = rfxdata:GetImpactType(tracerName)
+
+    if impactType then
+        local impactName= impactType.name
+        local isheat    = impactType.heat or false
+        local ishe      = impactType.he or false
+
+        if impactName then
+            RLFX:EmitSound(impactName)
+        end
+    end
+end
+
+hook.Add("Reforger.LVS_BulletCallback", "BulletSFX", BulletCallback)

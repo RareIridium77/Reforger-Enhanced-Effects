@@ -1,17 +1,19 @@
 RLFX = RLFX or {}
 
---- [ Networking ] ---
+---// SECTION [ Networking ]
 RLFX.Net = RLFX.Net or {}
-RLFX.Net.BaseDelay = 0.01 -- base delay for packet sending to client. Helps to sync every delay for players.
-RLFX.Net.MaxBytes = 32 -- maximum bytes to send to client
+RLFX.Net.BaseDelay = 0.01 --//NOTE base delay for packet sending to client. Helps to sync every delay for players.
+RLFX.Net.MaxBytes = 32 --//NOTE maximum bytes to send to client
 
 RLFX.Net.IsValidAMT = function(str)
     return isstring(str)
-        and #str <= 24 -- maximum for ammotype name is 24 (Sound Caching and Data sending)
+        and #str <= 24 --//NOTE maximum for ammotype name is 24 (Sound Caching and Data sending)
         and string.match(str, "^[%w%_%-]+$") ~= nil
 end
 
---- [ Data Handling ] ---
+--// !SECTION
+
+---// SECTION [ Data Handling ]
 RLFX.Data = RLFX.Data or {}
 
 local Data = RLFX.Data
@@ -33,6 +35,13 @@ function Data:AddTracerAmmoType(tracerName, ammoType, force)
     self.TracerAmmoType[tracerName] = ammoType
 end
 
+--- Get tracer ammo type
+function Data:GetTracerAmmoType(tracerName)
+    assert(isstring(tracerName), "tracerName must be a string!")
+
+    return self.TracerAmmoType[tracerName]
+end
+
 --- Add valid splash damage type
 function Data:AddValidSplashDamage(dmgType, force)
     assert(isnumber(dmgType), "dmgType must be a number!")
@@ -45,28 +54,44 @@ function Data:AddValidSplashDamage(dmgType, force)
     self.ValidSplashDamage[dmgType] = true
 end
 
+--- Is Valid splash damage?
+function Data:IsValidDamage(dmgType)
+    assert(isnumber(dmgType), "dmgType must be a number!")
+
+    return self.ValidSplashDamage[dmgType] == true --// NOTE Only if true
+end
+
 --- Add impact type
 function Data:AddImpactType(d)
-    local types = self.TracerImpactType
     local tracerName, ammotype, heat, he, force = d[1], d[2], d[3], d[4], d[5]
 
     assert(isstring(tracerName), "tracerName field should be a string value!")
     assert(isstring(ammotype), "ammotype field should be a string value!")
     assert(isbool(heat) and isbool(he), "he or heat field should be a boolean value!")
 
-    if types[tracerName] and not force then
+    if self.TracerImpactType[tracerName] and not force then
         ErrorNoHalt(tracerName .. " already exists in TracerImpactType. Use force = true to overwrite.\n")
         return 
     end
 
-    types[tracerName] = {
+    self.TracerImpactType[tracerName] = {
         name = ammotype,
         heat = heat,
         he = he
     }
 end
 
--- [ Default Impact Types ]
+--- Get Impact type
+function Data:GetImpactType(tracerName)
+    assert(isstring(tracerName), "tracerName must be a string!")
+    return self.TracerImpactType[tracerName]
+end
+
+--// !SECTION
+
+--// SECTION Default Data
+
+--// SECTION [ Default Impact Types ]
 local defaultImpactTypes = {
     -- { tracerName, impactName, heat, he }
     { "lvs_tracer_autocannon",           "exp_mid",   true,  false },
@@ -80,7 +105,9 @@ for _, entry in ipairs(defaultImpactTypes) do
     Data:AddImpactType(entry)
 end
 
--- [ Default Ammo Types ]
+--// !SECTION
+
+--// SECTION [ Default Ammo Types ]
 local defaultAmmoTypes = {
     -- { tracerName, ammoType }
     { "lvs_tracer_autocannon",       "25mm" },
@@ -94,7 +121,9 @@ for _, entry in ipairs(defaultAmmoTypes) do
     Data:AddTracerAmmoType(entry[1], entry[2])
 end
 
--- [ Default Splash Damage Types ]
+--// !SECTION
+
+--// SECTION [ Default Splash Damage Types ]
 local defaultSplashTypes = {
     DMG_BLAST,
     DMG_AIRBOAT,
@@ -104,5 +133,9 @@ local defaultSplashTypes = {
 for _, dmgType in ipairs(defaultSplashTypes) do
     Data:AddValidSplashDamage(dmgType)
 end
+
+--// !SECTION
+
+--// !SECTION
 
 RLFX.Data = Data
